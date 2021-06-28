@@ -99,14 +99,14 @@ def run_sprinkler(config, pin, runtime):
     try:
       GPIO.setup(pin, GPIO.OUT)
       log_file.write('%s: Starting sprinkler\n' % datetime.datetime.now())
-      print('%s: Starting sprinkler\n' % pin % datetime.datetime.now())
+      print('%s: Starting sprinkler\n' % datetime.datetime.now())
       GPIO.output(pin, GPIO.HIGH)
       sleep(runtime * 60) 
       log_file.write('%s: Stopping sprinkler\n' % datetime.datetime.now())
-      print('%s: Starting sprinkler\n' % pin % datetime.datetime.now())
+      print('%s: Starting sprinkler\n' % datetime.datetime.now())
       GPIO.output(pin, GPIO.LOW)
     except Exception as ex:
-      log_file.write('%s: An error has occurred: %s \n' % pin % (datetime.datetime.now(), ex.message))
+      log_file.write('%s: An error has occurred: %s \n' % (datetime.datetime.now(), ex.message))
       GPIO.output(pin, GPIO.LOW)
 
 # Main method
