@@ -152,9 +152,9 @@ def test():
   pin_center = int(config['gpio_center'])
   pin_side = int(config['gpio_side'])
   pin_drip = int(config['gpio_drip'])
-  run_sprinkler(config, pin_center, 20)
-  run_sprinkler(config, pin_side, 20)
-  run_sprinkler(config, pin_drip, 20)
+  run_sprinkler(config, pin_center, 1)
+  run_sprinkler(config, pin_side, 1)
+  run_sprinkler(config, pin_drip, 1)
 
   if total is None:
     print("API works but unable to get history. Did you sign up for the right plan?")
