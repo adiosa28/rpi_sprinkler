@@ -14,7 +14,7 @@ lon = 31.791895
 
 ####
 ## How long in minutes to run the sprinkler at a time
-runtime_min = 40
+runtime_min = 1
 
 ####
 ## Rain demand. Sprinkler running time depends of past rain amount.
