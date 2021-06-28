@@ -98,11 +98,11 @@ def run_sprinkler(config, pin, runtime):
   with open(config['log_file'],'a') as log_file:
     try:
       GPIO.setup(pin, GPIO.OUT)
-      log_file.write('%s: Starting sprinkler\n' % pin % datetime.datetime.now())
+      log_file.write('%s: Starting sprinkler\n' % datetime.datetime.now())
       print('%s: Starting sprinkler\n' % pin % datetime.datetime.now())
       GPIO.output(pin, GPIO.HIGH)
       sleep(runtime * 60) 
-      log_file.write('%s: Stopping sprinkler\n' % pin % datetime.datetime.now())
+      log_file.write('%s: Stopping sprinkler\n' % datetime.datetime.now())
       print('%s: Starting sprinkler\n' % pin % datetime.datetime.now())
       GPIO.output(pin, GPIO.LOW)
     except Exception as ex:
@@ -152,9 +152,9 @@ def test():
   pin_center = int(config['gpio_center'])
   pin_side = int(config['gpio_side'])
   pin_drip = int(config['gpio_drip'])
-  run_sprinkler(config, pin_center, 60)
-  run_sprinkler(config, pin_side, 60)
-  run_sprinkler(config, pin_drip, 60)
+  run_sprinkler(config, pin_center, 20)
+  run_sprinkler(config, pin_side, 20)
+  run_sprinkler(config, pin_drip, 20)
 
   if total is None:
     print("API works but unable to get history. Did you sign up for the right plan?")
