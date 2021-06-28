@@ -32,7 +32,7 @@ def get_weather_history(config, timestamp_dt):
                                        lat=config['lat'],
                                        lon=config['lon']))
     weather_data = json.loads(weather_history.content.decode('utf-8'))
-    hourly_rain = {x.get('dt'): x.get('rain').get('1h') for x in weather_data.get('hourly') if x.get('rain') and x.get('dt') >= timestamp_dt}
+    hourly_rain = {datetime.datetime.fromtimestamp(x.get('dt')): x.get('rain').get('1h') for x in weather_data.get('hourly') if x.get('rain') and x.get('dt') >= timestamp_dt}
     return hourly_rain
 
 def get_weather(config, timestamp_dt):
@@ -50,7 +50,7 @@ def get_weather(config, timestamp_dt):
       if rain:
         curr_rain = {timestamp_dt: rain.get('1h', 0)}
 
-    hourly_rain = {x.get('dt'): x.get('rain').get('1h') for x in weather_data.get('hourly') if x.get('rain') and x.get('dt') < timestamp_dt}
+    hourly_rain = {datetime.datetime.fromtimestamp(x.get('dt')): x.get('rain').get('1h') for x in weather_data.get('hourly') if x.get('rain') and x.get('dt') < timestamp_dt}
     hourly_rain.update(curr_rain)
     return hourly_rain
 
@@ -58,24 +58,25 @@ def get_weather(config, timestamp_dt):
 # By default estimates rainfall in past 24 hours
 # to get something different use a different time_win
 # (Note this doesn't go further back than yesterday)
-def get_precip_in_window(config, time_win_hr=24):
+def get_precip_in_window(config, time_win_hr_past=24, time_win_hr_next=8):
     # Get the utc date from yesterday and convert to Unix timestamp
     yesterday_timestamp = calendar.timegm((
       datetime.datetime.utcnow() - \
-      datetime.timedelta(hours=time_win_hr)).utctimetuple())
+      datetime.timedelta(hours=time_win_hr_past)).utctimetuple())
     # Get the utc date from today and convert to Unix timestamp
-    today_timestamp = calendar.timegm(
-      datetime.datetime.utcnow().utctimetuple())
+    today_timestamp = calendar.timegm((datetime.datetime.utcnow() + datetime.timedelta(hours=time_win_hr_next)).utctimetuple())
 
     
     # Get observations for today and yesterday
     try:
         hourly_rain_yest = get_weather_history(config, yesterday_timestamp)
+        print(hourly_rain_yest)
     except Exception as ex: 
         print(ex)
         return None
     try:
         hourly_rain_today = get_weather(config, today_timestamp)
+        print(hourly_rain_today)
     except Exception as ex:
         print(ex)
         return None
@@ -92,29 +93,32 @@ def get_precip_in_window(config, time_win_hr=24):
     return total
 
 # Runs sprinkler
-def run_sprinkler(config):
-  pin = int(config['gpio_starter'])
-  led = int(config['gpio_led1'])
-  runtime = float(config['runtime_min'])
+def run_sprinkler(config, pin, runtime):
+
   with open(config['log_file'],'a') as log_file:
     try:
-      GPIO.setup((pin, led), GPIO.OUT)
+      GPIO.setup(pin, GPIO.OUT)
       log_file.write('%s: Starting sprinkler\n' % datetime.datetime.now())
-      GPIO.output((pin,led), GPIO.HIGH)
+      GPIO.output(pin, GPIO.HIGH)
       sleep(runtime * 60) 
       log_file.write('%s: Stopping sprinkler\n' % datetime.datetime.now())
-      GPIO.output((pin,led), GPIO.LOW)
+      GPIO.output(pin, GPIO.LOW)
     except Exception as ex:
       log_file.write('%s: An error has occurred: %s \n' % (datetime.datetime.now(), ex.message))  
-      GPIO.output((pin,led), GPIO.LOW)
+      GPIO.output(pin, GPIO.LOW)
 
 # Main method
 #   1.  Reads config file
-#   2.  Checks past 24 hours of rainfall
-#   3.  Runs sprinkler if rainfall falls below threshold
+#   2.  Checks past 24 hours of rainfall and next 8 hours
+#   3.  Runs sprinkler proportional amount of time to reach water demand
 def main(): 
   # Load configuration file  
   config = load_config()
+  pin_center = int(config['gpio_center'])
+  pin_side = int(config['gpio_side'])
+  pin_drip = int(config['gpio_drip'])
+  runtime = float(config['runtime_min'])
+  water_demand = float(config['water_demand_mm'])
     
   with open(config['log_file'],'a') as log_file:
     # Get past 24 hour precip
@@ -124,18 +128,33 @@ def main():
       rainfall = 0.0
     else:
       log_file.write('%s: Rainfall: %f in\n' % (datetime.datetime.now(), rainfall))
-    
-  # If this is less than rain_threshold_mm run sprinkler
-  if rainfall <= float(config['rain_threshold_mm']):
-    run_sprinkler(config)
 
-# Test API access
-def test_api():
+  rain_coefficient = (water_demand - rainfall)/water_demand
+  runtime = runtime*rain_coefficient
+  # If this is less than rain_threshold_mm run sprinkler
+  if rainfall <= float(water_demand):
+    run_sprinkler(config, pin_drip, runtime)
+    run_sprinkler(config, pin_center, runtime)
+    run_sprinkler(config, pin_side, runtime)
+    run_sprinkler(config, pin_drip, runtime)
+    run_sprinkler(config, pin_center, runtime)
+    run_sprinkler(config, pin_side, runtime)
+
+
+# Test API access and if valve is working
+def test():
   config = load_config()
   total = get_precip_in_window(config)
 
+  pin_center = int(config['gpio_center'])
+  pin_side = int(config['gpio_side'])
+  pin_drip = int(config['gpio_drip'])
+  run_sprinkler(config, pin_center, 60)
+  run_sprinkler(config, pin_side, 60)
+  run_sprinkler(config, pin_drip, 60)
+
   if total is None:
-    print("API works but unable to get history.  Did you sign up for the right plan?")
+    print("API works but unable to get history. Did you sign up for the right plan?")
     return
     
   print("API seems to be working with past 24 hour rainfall=%f" % (total))  
@@ -161,7 +180,7 @@ if __name__ == "__main__":
   elif len(sys.argv) == 2 and sys.argv[1] == 'test':
     # Tests connection to API
     # Make sure you run as root or this won't work
-    test_api()
+    test()
   elif len(sys.argv) == 2 and sys.argv[1] == 'force':
     # Runs sprinkler regardless of rainfall
     force_run()
