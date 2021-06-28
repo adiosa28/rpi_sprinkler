@@ -9,8 +9,8 @@ api_key = 7ba1e687e671cf30c3d4ffbb215c89ef
 ####
 ## Latitude and longitude where sprinkler is being run.
 
-lat = 59.373982
-lon = 31.791895
+lat = 52.440502
+lon = 19.692295
 
 ####
 ## How long in minutes to run the sprinkler at a time
