@@ -98,13 +98,15 @@ def run_sprinkler(config, pin, runtime):
   with open(config['log_file'],'a') as log_file:
     try:
       GPIO.setup(pin, GPIO.OUT)
-      log_file.write('%s: Starting sprinkler\n' % datetime.datetime.now())
+      log_file.write('%s: Starting sprinkler\n' % pin % datetime.datetime.now())
+      print('%s: Starting sprinkler\n' % pin % datetime.datetime.now())
       GPIO.output(pin, GPIO.HIGH)
       sleep(runtime * 60) 
-      log_file.write('%s: Stopping sprinkler\n' % datetime.datetime.now())
+      log_file.write('%s: Stopping sprinkler\n' % pin % datetime.datetime.now())
+      print('%s: Starting sprinkler\n' % pin % datetime.datetime.now())
       GPIO.output(pin, GPIO.LOW)
     except Exception as ex:
-      log_file.write('%s: An error has occurred: %s \n' % (datetime.datetime.now(), ex.message))  
+      log_file.write('%s: An error has occurred: %s \n' % pin % (datetime.datetime.now(), ex.message))
       GPIO.output(pin, GPIO.LOW)
 
 # Main method
@@ -131,6 +133,7 @@ def main():
 
   rain_coefficient = (water_demand - rainfall)/water_demand
   runtime = runtime*rain_coefficient
+  print("Rain coefficient: ", rain_coefficient, "\nruntime: ", runtime)
   # If this is less than rain_threshold_mm run sprinkler
   if rainfall <= float(water_demand):
     run_sprinkler(config, pin_drip, runtime)
