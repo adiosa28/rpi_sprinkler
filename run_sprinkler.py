@@ -100,14 +100,14 @@ def run_sprinkler(config, pin, runtime):
       GPIO.setup(pin, GPIO.OUT)
       log_file.write('%s: Starting sprinkler\n' % datetime.datetime.now())
       print('%s: Starting sprinkler\n' % datetime.datetime.now())
-      GPIO.output(pin, GPIO.HIGH)
+      GPIO.output(pin, GPIO.LOW)
       sleep(runtime * 60) 
       log_file.write('%s: Stopping sprinkler\n' % datetime.datetime.now())
       print('%s: Stopping sprinkler\n' % datetime.datetime.now())
-      GPIO.output(pin, GPIO.LOW)
+      GPIO.output(pin, GPIO.HIGH)
     except Exception as ex:
       log_file.write('%s: An error has occurred: %s \n' % (datetime.datetime.now(), ex.message))
-      GPIO.output(pin, GPIO.LOW)
+      GPIO.output(pin, GPIO.HIGH)
 
 # Main method
 #   1.  Reads config file
