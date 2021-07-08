@@ -165,17 +165,32 @@ def test():
 # Runs without checking rainfall
 def force_run():
   config = load_config()
-  run_sprinkler(config)
+  pin_center = int(config['gpio_center'])
+  pin_side = int(config['gpio_side'])
+  GPIO.setup(pin_side, GPIO.OUT)
+  GPIO.output(pin_side, GPIO.LOW)
+  sleep(40 * 60)
+  GPIO.output(pin_side, GPIO.HIGH)
+
+  GPIO.setup(pin_center, GPIO.OUT)
+  GPIO.output(pin_center, GPIO.LOW)
+  sleep(40 * 60)
+  GPIO.output(pin_center, GPIO.HIGH)
   
 # Sets all GPIO pins to GPIO.LOW.  Should be run when the 
 # raspberry pi starts.
 def init():
     config = load_config()
-    pin = int(config['gpio_starter'])
-    led = int(config['gpio_led1'])
-    GPIO.setup((pin, led), GPIO.OUT)
-    GPIO.output((pin,led), GPIO.LOW)      
-    
+    pin_center = int(config['gpio_center'])
+    pin_side = int(config['gpio_side'])
+    pin_drip = int(config['gpio_drip'])
+    GPIO.setup(pin_center, GPIO.OUT)
+    GPIO.output(pin_center, GPIO.HIGH)
+    GPIO.setup(pin_drip, GPIO.OUT)
+    GPIO.output(pin_drip, GPIO.HIGH)
+    GPIO.setup(pin_side, GPIO.OUT)
+    GPIO.output(pin_side, GPIO.HIGH)
+
 if __name__ == "__main__":
   if len(sys.argv) == 1:
     # Standard mode
