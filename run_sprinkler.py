@@ -169,12 +169,11 @@ def force_run():
   pin_side = int(config['gpio_side'])
   GPIO.setup(pin_side, GPIO.OUT)
   GPIO.output(pin_side, GPIO.LOW)
-  sleep(40 * 60)
-  GPIO.output(pin_side, GPIO.HIGH)
 
   GPIO.setup(pin_center, GPIO.OUT)
   GPIO.output(pin_center, GPIO.LOW)
   sleep(40 * 60)
+  GPIO.output(pin_side, GPIO.HIGH)
   GPIO.output(pin_center, GPIO.HIGH)
   
 # Sets all GPIO pins to GPIO.LOW.  Should be run when the 
